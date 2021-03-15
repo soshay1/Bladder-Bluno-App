@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/BlunoBasicDemo.iml" filepath="$PROJECT_DIR$/.idea/BlunoBasicDemo.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/BlunoBasicDemo.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/BlunoBasicDemo.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/BlunoApp.iml" filepath="$PROJECT_DIR$/.idea/modules/BlunoApp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/BlunoApp.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/BlunoApp.app.iml" />
     </modules>
   </component>
 </project>

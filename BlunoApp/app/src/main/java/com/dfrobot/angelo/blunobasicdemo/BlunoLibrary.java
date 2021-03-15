@@ -3,6 +3,9 @@ package com.dfrobot.angelo.blunobasicdemo;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.os.Handler;
 import android.os.IBinder;
 import android.annotation.SuppressLint;
@@ -325,8 +328,29 @@ public abstract  class BlunoLibrary  extends Activity{
 					}
             	}
             	else if (mSCharacteristic==mSerialPortCharacteristic) {
-            		onSerialReceived(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
-				}
+                    Intent i = new Intent(context, MainActivity.class);
+                    //PendingIntent pIntent = PendingIntent.getActivity(context, 0, i, 0);
+
+// build notification
+// the addAction re-use the same intent to keep the example short
+                    Notification n  = new Notification.Builder(context)
+                            .setContentTitle("New mail from " + "test@gmail.com")
+                            .setContentText("Subject")
+                            .setSmallIcon(R.drawable.abc_ic_ab_back_mtrl_am_alpha)
+                            //.setContentIntent(pIntent)
+                            .setAutoCancel(true).build();
+                    //.addAction(R.drawable.icon, "Call", pIntent)
+                    //.addAction(R.drawable.icon, "More", pIntent)
+                    //.addAction(R.drawable.icon, "And more", pIntent).build();
+
+
+                    NotificationManager notificationManager =
+                            (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+                    notificationManager.notify(0, n);
+            	    onSerialReceived(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+
+                }
             	
             
             	System.out.println("displayData "+intent.getStringExtra(BluetoothLeService.EXTRA_DATA));

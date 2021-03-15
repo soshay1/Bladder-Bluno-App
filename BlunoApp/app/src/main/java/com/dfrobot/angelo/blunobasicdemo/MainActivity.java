@@ -17,6 +17,7 @@ public class MainActivity  extends BlunoLibrary {
 	private Button buttonSerialSend;
 	private EditText serialSendText;
 	private TextView serialReceivedText;
+	private boolean scl;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +52,7 @@ public class MainActivity  extends BlunoLibrary {
 				buttonScanOnClickProcess();										//Alert Dialog for selecting the BLE device
 			}
 		});
+        scl=true;
 	}
 
 	protected void onResume(){
@@ -111,7 +113,19 @@ public class MainActivity  extends BlunoLibrary {
 	@Override
 	public void onSerialReceived(String theString) {							//Once connection data received, this function will be called
 		// TODO Auto-generated method stub
-		serialReceivedText.append(theString);							//append the text into the EditText
+        /*if(scl) {
+            serialReceivedText.append("SCL: ");
+        }
+        else{
+            serialReceivedText.append(" SDA: ");
+        }*/
+
+        serialReceivedText.append("SCL: ");
+        serialReceivedText.append(theString.getBytes()[0]+"");
+        serialReceivedText.append(" SDA: ");
+        serialReceivedText.append(theString.getBytes()[1]+""); // probably not good need to change
+        serialReceivedText.append("\n");
+        //append the text into the EditText
 		//The Serial data from the BLUNO may be sub-packaged, so using a buffer to hold the String is a good choice.
 		((ScrollView)serialReceivedText.getParent()).fullScroll(View.FOCUS_DOWN);
 	}
