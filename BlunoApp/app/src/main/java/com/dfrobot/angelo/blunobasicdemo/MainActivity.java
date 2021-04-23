@@ -12,6 +12,9 @@ import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 public class MainActivity  extends BlunoLibrary {
 	private Button buttonScan;
 	private Button buttonSerialSend;
@@ -120,10 +123,14 @@ public class MainActivity  extends BlunoLibrary {
             serialReceivedText.append(" SDA: ");
         }*/
 
-        serialReceivedText.append("SCL: ");
-        serialReceivedText.append(theString.getBytes()[0]+"");
-        serialReceivedText.append(" SDA: ");
-        serialReceivedText.append(theString.getBytes()[1]+""); // probably not good need to change
+        serialReceivedText.append("Impedance: ");
+        //serialReceivedText.append(theString.getBytes()[0]+"");
+        String[] arrOfStr = theString.split("\\.", 4);
+        byte[] bytes = {(byte)(Integer.parseInt(arrOfStr[0])),(byte)(Integer.parseInt(arrOfStr[1])),(byte)(Integer.parseInt(arrOfStr[2])),(byte)(Integer.parseInt(arrOfStr[3]))};
+        float f = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+        serialReceivedText.append(String.valueOf(f));
+        //serialReceivedText.append(" SDA: ");
+        //serialReceivedText.append(theString.getBytes()[1]+""); // probably not good need to change
         serialReceivedText.append("\n");
         //append the text into the EditText
 		//The Serial data from the BLUNO may be sub-packaged, so using a buffer to hold the String is a good choice.

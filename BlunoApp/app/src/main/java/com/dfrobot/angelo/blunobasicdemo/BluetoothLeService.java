@@ -293,6 +293,11 @@ public class BluetoothLeService extends Service {
         final Intent intent = new Intent(action);
         sendBroadcast(intent);
     }
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        // do your jobs here
+        return super.onStartCommand(intent, flags, startId);
+    }
 
     private void broadcastUpdate(final String action,
                                  final BluetoothGattCharacteristic characteristic) {
@@ -538,6 +543,5 @@ public class BluetoothLeService extends Service {
 
         return mBluetoothGatt.getServices();
     }
-    
-    
+
 }

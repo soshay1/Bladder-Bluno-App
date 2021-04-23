@@ -125,8 +125,8 @@ public abstract  class BlunoLibrary  extends Activity{
 
 
 		Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
-		bindService(gattServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
-        
+		bindService(gattServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE); //might need broadcast reciever to guarantee it'll work
+        //startService(gattServiceIntent); //will this work
 		// Initializes list view adapter.
 		mLeDeviceListAdapter = new LeDeviceListAdapter();
 		// Initializes and show the scan Device Dialog
@@ -333,10 +333,11 @@ public abstract  class BlunoLibrary  extends Activity{
 
 // build notification
 // the addAction re-use the same intent to keep the example short
+                    String SCL_SDA=intent.getStringExtra(BluetoothLeService.EXTRA_DATA);
                     Notification n  = new Notification.Builder(context)
-                            .setContentTitle("New mail from " + "test@gmail.com")
-                            .setContentText("Subject")
-                            .setSmallIcon(R.drawable.abc_ic_ab_back_mtrl_am_alpha)
+                            .setContentTitle("Impedance received")
+                            .setContentText("Something something")
+                            .setSmallIcon(R.mipmap.ic_launcher)
                             //.setContentIntent(pIntent)
                             .setAutoCancel(true).build();
                     //.addAction(R.drawable.icon, "Call", pIntent)
@@ -541,7 +542,7 @@ public abstract  class BlunoLibrary  extends Activity{
 		}
 
 		public void addDevice(BluetoothDevice device) {
-			if (!mLeDevices.contains(device)) {
+			if (!(mLeDevices.contains(device))&&!(device.getName()==null)) { //added this so i don't see unknown devices. i don't care about those.
 				mLeDevices.add(device);
 			}
 		}
