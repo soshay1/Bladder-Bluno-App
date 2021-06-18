@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.os.Bundle;
 import android.content.Intent;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -32,7 +33,7 @@ public class MainActivity  extends BlunoLibrary {
         serialBegin(115200);													//set the Uart Baudrate on BLE chip to 115200
 
         serialReceivedText=(TextView) findViewById(R.id.serialReveicedText);	//initial the EditText of the received data
-        serialSendText=(EditText) findViewById(R.id.serialSendText);			//initial the EditText of the sending data
+       // serialSendText=(EditText) findViewById(R.id.serialSendText);			//initial the EditText of the sending data
 
         buttonSerialSend = (Button) findViewById(R.id.buttonSerialSend);		//initial the button for sending the data
         buttonSerialSend.setOnClickListener(new OnClickListener() {
@@ -41,7 +42,8 @@ public class MainActivity  extends BlunoLibrary {
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
 
-				serialSend(serialSendText.getText().toString());				//send the data to the BLUNO
+				//serialSend(serialSendText.getText().toString());				//send the data to the BLUNO
+                tellStart();
 			}
 		});
 
@@ -57,9 +59,18 @@ public class MainActivity  extends BlunoLibrary {
 		});
         scl=true;
 	}
-
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+    }
 	protected void onResume(){
 		super.onResume();
+		// did we come from a notification?
+        boolean n= getIntent().getBooleanExtra("cameFromNotif",false);
+        Log.i("debug: onResume:", n+"");
+        if(n){
+            tellStop();
+        }
 		System.out.println("BlUNOActivity onResume");
 		onResumeProcess();														//onResume Process by BlunoLibrary
 	}
@@ -125,10 +136,11 @@ public class MainActivity  extends BlunoLibrary {
 
         serialReceivedText.append("Impedance: ");
         //serialReceivedText.append(theString.getBytes()[0]+"");
-        String[] arrOfStr = theString.split("\\.", 4);
+        /*String[] arrOfStr = theString.split("\\.", 4);
         byte[] bytes = {(byte)(Integer.parseInt(arrOfStr[0])),(byte)(Integer.parseInt(arrOfStr[1])),(byte)(Integer.parseInt(arrOfStr[2])),(byte)(Integer.parseInt(arrOfStr[3]))};
         float f = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-        serialReceivedText.append(String.valueOf(f));
+        serialReceivedText.append(String.valueOf(f));*/
+        serialReceivedText.append(theString);
         //serialReceivedText.append(" SDA: ");
         //serialReceivedText.append(theString.getBytes()[1]+""); // probably not good need to change
         serialReceivedText.append("\n");

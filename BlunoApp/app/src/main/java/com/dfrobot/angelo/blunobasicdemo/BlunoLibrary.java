@@ -1,11 +1,16 @@
 package com.dfrobot.angelo.blunobasicdemo;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.media.RingtoneManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.annotation.SuppressLint;
@@ -24,6 +29,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -50,10 +56,19 @@ public abstract  class BlunoLibrary  extends Activity{
 			mBluetoothLeService.writeCharacteristic(mSCharacteristic);
 		}
 	}
-	
+	/*
+	* Cannot click on notification while in app or it won't work (workaround for later? hmmm)
+	* */
+	private boolean sendMore = true;
+	private boolean sendTask = true;
+	private boolean sendMoreFromActivity=true;
 	private int mBaudrate=115200;	//set the default baud rate to 115200
 	private String mPassword="AT+PASSWOR=DFRobot\r\n";
-	
+	// current limit. under this a notification is sent.
+	private double limit =1000.0;
+
+	// in the future there should be a calibration period for a few minutes and then the equation can be created from there. Since that's linear there should be a function
+    // to create that equation and put m and b into global variables. Then use that same equation to figure out if to send a notif (instead of simply using limit)
 	
 	private String mBaudrateBuffer = "AT+CURRUART="+mBaudrate+"\r\n";
 	
@@ -184,8 +199,16 @@ public abstract  class BlunoLibrary  extends Activity{
 		}).create();
 		
     }
-    
-    
+    //simply tells service to stop notifs (does it work)
+    public void tellStop(){
+        sendMore=false;
+        sendMoreFromActivity=false;
+    }
+    public void tellStart(){
+        sendMore=true;
+        sendMoreFromActivity=true;
+        sendTask = true;
+    }
     
     public void onResumeProcess() {
     	System.out.println("BlUNOActivity onResume");
@@ -282,6 +305,13 @@ public abstract  class BlunoLibrary  extends Activity{
     // ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services.
     // ACTION_DATA_AVAILABLE: received data from the device.  This can be a result of read
     //                        or notification operations.
+     public static Integer tryParse(String text) {
+         try {
+             return Integer.parseInt(text);
+         } catch (NumberFormatException e) {
+             return null;
+         }
+     }
     private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
         @SuppressLint("DefaultLocale")
 		@Override
@@ -329,27 +359,66 @@ public abstract  class BlunoLibrary  extends Activity{
             	}
             	else if (mSCharacteristic==mSerialPortCharacteristic) {
                     Intent i = new Intent(context, MainActivity.class);
-                    //PendingIntent pIntent = PendingIntent.getActivity(context, 0, i, 0);
+                    i.putExtra("cameFromNotif",true); //tells activity we came from the notification so we can stop sending
+                    PendingIntent pIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_UPDATE_CURRENT); //potential problem line
 
 // build notification
 // the addAction re-use the same intent to keep the example short
                     String SCL_SDA=intent.getStringExtra(BluetoothLeService.EXTRA_DATA);
-                    Notification n  = new Notification.Builder(context)
-                            .setContentTitle("Impedance received")
-                            .setContentText("Something something")
-                            .setSmallIcon(R.mipmap.ic_launcher)
-                            //.setContentIntent(pIntent)
-                            .setAutoCancel(true).build();
+                    String[] arrOfStr = SCL_SDA.split("\\.", 4);
+                    for(int j=0; j<arrOfStr.length; j++){
+                        if(tryParse(arrOfStr[j])==null){
+                            onSerialReceived("Contingency: Content of string is "+SCL_SDA);
+                            return;
+                        }
+                    }
+                    if(arrOfStr.length!=4){
+                        onSerialReceived("Contingency: Content of string is "+SCL_SDA);
+                        return;
+                    }
+                    byte[] bytes = {(byte)(Integer.parseInt(arrOfStr[0])),(byte)(Integer.parseInt(arrOfStr[1])),(byte)(Integer.parseInt(arrOfStr[2])),(byte)(Integer.parseInt(arrOfStr[3]))};
+                    float f = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+                    String s = String.valueOf(f);
+                    //Log.i("DEBUG!!!",SCL_SDA);
+                    Log.i("debug: sendmore", sendMore+"");
+                    Timer timer = new Timer();
+                    TimerTask task = new TimerTask() {
+                        @Override
+                        public void run() {
+                            if(sendMoreFromActivity) {
+                                Log.i("SEND MORE!!!", "f");
+                                sendMore = true;
+                                sendTask = true;
+                            }
+                        }
+                    };
+
+                    if(f<limit &&sendMore) {
+                        Notification n = new NotificationCompat.Builder(context)
+                                .setContentTitle("Empty bladder!")
+                                .setContentText(s)
+                                .setSmallIcon(R.drawable.ic_baseline_medical_services_24)
+                                .setContentIntent(pIntent)
+                                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                                .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+                                .setAutoCancel(true).build();
+                        NotificationManager notificationManager =
+                                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+                        notificationManager.notify(0, n);
+                        sendMore=false;
+                        if(sendTask) {
+                            timer.schedule(task, 5000);
+                            sendTask=false;
+                        }
+                    }
                     //.addAction(R.drawable.icon, "Call", pIntent)
                     //.addAction(R.drawable.icon, "More", pIntent)
                     //.addAction(R.drawable.icon, "And more", pIntent).build();
 
 
-                    NotificationManager notificationManager =
-                            (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-                    notificationManager.notify(0, n);
-            	    onSerialReceived(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+            	    onSerialReceived(s);
 
                 }
             	

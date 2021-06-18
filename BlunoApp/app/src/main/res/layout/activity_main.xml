@@ -30,14 +30,14 @@
             android:layout_alignEnd="@+id/serialSendText"
             android:layout_alignParentBottom="true" />
     </ScrollView>
-
     <Button
         android:id="@+id/buttonSerialSend"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/serialSendText"
         android:layout_alignRight="@+id/serialSendText"
-        android:text="Send Data" />
+        android:text="@string/restart"/>
+
 
     <TextView
         android:id="@+id/editText2"
@@ -50,20 +50,15 @@
         android:text="Received Data:"
         android:textSize="25sp" />
 
-    <EditText
+    <TextView
         android:id="@+id/serialSendText"
         android:layout_width="310dp"
-        android:layout_height="40dp"
+        android:layout_height="1dp"
         android:layout_below="@+id/buttonScan"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="22dp"
-        android:background="#555555"
-        android:bufferType="editable"
-        android:ems="10"
-        android:inputType="text"
-        android:text="Data sending Area"
-        android:textColor="#999999"
-        android:textSize="20dip" />
+        android:layout_marginTop="2dp"
+        android:text=""
+        android:textSize="1dip" />
 
     <Button
         android:id="@+id/buttonScan"
